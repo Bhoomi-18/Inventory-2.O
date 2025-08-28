@@ -3,42 +3,47 @@ import { UserPlus, Shield } from 'lucide-react';
 import UserStats from './UserStats';
 import UserTable from './UserTable';
 import RoleManagement from './RoleManagement';
-import type { User, UserRole } from '../../types';
-import { sampleUsers, sampleRoles } from '../../data/mockData';
+import UserForm from './UserForm';
+import { useUsers } from '../../hooks/useUsers';
+import type { User } from '../../types/user';
 
 const Users: React.FC = () => {
-  const [users, setUsers] = useState<User[]>(sampleUsers);
-  const [roles, setRoles] = useState<UserRole[]>(sampleRoles);
-  const [activeTab, setActiveTab] = useState<'users' | 'roles'>('users');
+  const { users, loading, error, createUser, updateUser, deleteUser } = useUsers();
+  const [showRoles, setShowRoles] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  const handleViewUser = (user: User) => {
-    console.log('Viewing user:', user.name);
+  const adminUser = users.find(u =>
+    typeof u.role === 'string'
+      ? u.role === 'Admin'
+      : u.role?.name === 'Admin'
+  );
+  const otherUsers = users.filter(u => u !== adminUser);
+
+  const handleAddUser = () => {
+    setEditingUser(null);
+    setShowForm(true);
   };
 
   const handleEditUser = (user: User) => {
-    console.log('Editing user:', user.name);
+    setEditingUser(user);
+    setShowForm(true);
   };
 
-  const handleDeactivateUser = (userId: string) => {
-    setUsers(prev => prev.map(user => 
-      user.id === userId ? { ...user, status: 'Inactive' } : user
-    ));
+  const handleDeleteUser = async (userId: string) => {
+    if (window.confirm('Delete this user?')) {
+      await deleteUser(userId);
+    }
   };
 
-  const handleCreateRole = (roleData: Omit<UserRole, 'id'>) => {
-    const newRole: UserRole = {
-      ...roleData,
-      id: String(roles.length + 1)
-    };
-    setRoles(prev => [...prev, newRole]);
-  };
-
-  const handleEditRole = (role: UserRole) => {
-    console.log('Editing role:', role.name);
-  };
-
-  const handleDeleteRole = (roleId: string) => {
-    setRoles(prev => prev.filter(role => role.id !== roleId));
+  const handleFormSubmit = async (user: Partial<User>) => {
+    if (editingUser) {
+      await updateUser(editingUser._id, user);
+    } else {
+      await createUser(user);
+    }
+    setShowForm(false);
+    setEditingUser(null);
   };
 
   return (
@@ -49,63 +54,50 @@ const Users: React.FC = () => {
           <p className="text-gray-600">Manage system users and role permissions</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-700">
+          <button
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-700"
+            onClick={() => setShowRoles(true)}
+          >
             <Shield className="w-4 h-4" />
             Manage Roles
           </button>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700">
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
+            onClick={handleAddUser}
+          >
             <UserPlus className="w-4 h-4" />
             Add User
           </button>
         </div>
       </div>
 
-      <UserStats />
-
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex">
-            <button
-              onClick={() => setActiveTab('users')}
-              className={`px-6 py-3 text-sm font-medium ${
-                activeTab === 'users'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Users
-            </button>
-            <button
-              onClick={() => setActiveTab('roles')}
-              className={`px-6 py-3 text-sm font-medium ${
-                activeTab === 'roles'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Roles & Permissions
-            </button>
-          </nav>
-        </div>
-
-        <div className="p-0">
-          {activeTab === 'users' ? (
-            <UserTable 
-              users={users}
-              onViewUser={handleViewUser}
-              onEditUser={handleEditUser}
-              onDeactivateUser={handleDeactivateUser}
-            />
-          ) : (
-            <RoleManagement 
-              roles={roles}
-              onCreateRole={handleCreateRole}
-              onEditRole={handleEditRole}
-              onDeleteRole={handleDeleteRole}
-            />
-          )}
-        </div>
-      </div>
+      {showRoles ? (
+        <RoleManagement onClose={() => setShowRoles(false)} />
+      ) : showForm ? (
+        <UserForm
+          initial={editingUser || undefined}
+          onSubmit={handleFormSubmit}
+          onCancel={() => { setShowForm(false); setEditingUser(null); }}
+        />
+      ) : (
+        <>
+          <UserStats />
+          <div className="bg-white rounded-lg border border-gray-200">
+            {loading ? (
+              <div className="p-4 text-gray-500">Loading users...</div>
+            ) : error ? (
+              <div className="p-4 text-red-500">{error}</div>
+            ) : (
+              <UserTable
+                users={adminUser ? [adminUser, ...otherUsers] : users}
+                onViewUser={() => {}}
+                onEditUser={handleEditUser}
+                onDeactivateUser={handleDeleteUser}
+              />
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };

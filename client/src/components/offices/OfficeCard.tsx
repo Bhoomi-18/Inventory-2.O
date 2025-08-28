@@ -1,6 +1,6 @@
 import React from 'react';
 import { MapPin, Phone, Mail, Users, Package, User, Building } from 'lucide-react';
-import type { Office } from '../../types';
+import type { Office } from '../../types/office';
 import { getStatusColor } from '../../utils';
 
 interface OfficeCardProps {
@@ -10,14 +10,25 @@ interface OfficeCardProps {
 }
 
 const OfficeCard: React.FC<OfficeCardProps> = ({ office, onViewDetails, onEdit }) => (
-  <div className="bg-white p-6 rounded-lg border border-gray-200">
+  <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-          <Building className="w-6 h-6 text-blue-600" />
+        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+          office.isMain ? 'bg-green-100' : 'bg-blue-100'
+        }`}>
+          <Building className={`w-6 h-6 ${
+            office.isMain ? 'text-green-600' : 'text-blue-600'
+          }`} />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">{office.name}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gray-900">{office.name}</h3>
+            {office.isMain && (
+              <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                Main
+              </span>
+            )}
+          </div>
           <p className="text-sm text-gray-500">Code: {office.code}</p>
         </div>
       </div>
@@ -89,13 +100,13 @@ const OfficeCard: React.FC<OfficeCardProps> = ({ office, onViewDetails, onEdit }
     <div className="flex gap-2">
       <button 
         onClick={() => onViewDetails(office)}
-        className="flex-1 text-blue-600 hover:text-blue-800 text-sm font-medium"
+        className="flex-1 text-blue-600 hover:text-blue-800 text-sm font-medium hover:bg-blue-50 py-2 rounded-lg transition-colors"
       >
         View Details
       </button>
       <button 
         onClick={() => onEdit(office)}
-        className="flex-1 text-gray-600 hover:text-gray-800 text-sm font-medium"
+        className="flex-1 text-gray-600 hover:text-gray-800 text-sm font-medium hover:bg-gray-50 py-2 rounded-lg transition-colors"
       >
         Edit
       </button>

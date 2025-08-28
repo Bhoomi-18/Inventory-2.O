@@ -13,7 +13,7 @@ export interface GeneralSettings {
   dateFormat: string;
   currency: string;
   language: string;
-  defaultAssignmentPeriod: number; // days
+  defaultAssignmentPeriod: number;
   lowStockThreshold: number;
 }
 
@@ -36,7 +36,7 @@ export interface SecuritySettings {
     expirationDays: number;
   };
   twoFactorAuth: boolean;
-  sessionTimeout: number; // minutes
+  sessionTimeout: number; 
   maxLoginAttempts: number;
   auditLogs: boolean;
 }
@@ -44,7 +44,7 @@ export interface SecuritySettings {
 export interface BackupSettings {
   autoBackup: boolean;
   backupFrequency: 'daily' | 'weekly' | 'monthly';
-  retentionPeriod: number; // days
+  retentionPeriod: number; 
   cloudStorage: boolean;
   lastBackup?: string;
 }

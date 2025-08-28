@@ -16,7 +16,7 @@ export interface Invoice {
 }
 
 export interface InvoiceItem {
-  id: string;
+  id?: string;
   description: string;
   quantity: number;
   unitPrice: number;
@@ -29,4 +29,61 @@ export interface InvoiceStats {
   totalAmount: number;
   pendingAmount: number;
   overdueAmount: number;
+  paidThisMonth: number;
+  pendingCount: number;
+  overdueCount: number;
+}
+
+export interface InvoiceFilters {
+  status?: string;
+  vendor?: string;
+  search?: string;
+  fromDate?: string;
+  toDate?: string;
+}
+
+export interface InvoicePagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface CreateInvoiceRequest {
+  invoiceNumber: string;
+  vendor: string;
+  vendorId: string;
+  taxAmount: number;
+  issueDate: string;
+  dueDate: string;
+  description: string;
+  items: Omit<InvoiceItem, 'id'>[];
+  status?: 'Pending' | 'Paid' | 'Overdue' | 'Cancelled';
+  attachments?: string[];
+}
+
+export interface UpdateInvoiceRequest extends Partial<CreateInvoiceRequest> {
+  paidDate?: string;
+}
+
+export interface InvoiceListResponse {
+  invoices: Invoice[];
+  pagination: InvoicePagination;
+}
+
+export interface InvoiceStatsResponse {
+  success: boolean;
+  data: InvoiceStats;
+}
+
+export interface InvoiceResponse {
+  success: boolean;
+  data: Invoice;
+  message?: string;
+}
+
+export interface InvoiceListApiResponse {
+  success: boolean;
+  data: InvoiceListResponse;
+  message?: string;
 }

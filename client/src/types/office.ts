@@ -21,4 +21,5 @@ export interface Office {
   employees: number;
   status: 'Active' | 'Inactive';
   createdAt: string;
+  isMain?: boolean;
 }

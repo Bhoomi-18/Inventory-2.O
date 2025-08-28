@@ -1,4 +1,4 @@
-import type { Asset, Assignment, Vendor, RepairTicket, ChartData, TrendData, User, Invoice, Office, SystemSettings, UserRole, Report } from '../types';
+import type { Asset, Assignment, Vendor, RepairTicket, ChartData, TrendData, User, Invoice, Office, SystemSettings, UserRole, Report, Company, UserAuth } from '../types';
 
 export const assetDistributionData: ChartData[] = [
   { name: 'Computers', value: 40, color: '#3b82f6' },
@@ -96,7 +96,6 @@ export const sampleRepairTickets: RepairTicket[] = [
   },
 ];
 
-// Reports Mock Data
 export const sampleReports: Report[] = [
   {
     id: '1',
@@ -134,7 +133,6 @@ export const sampleReports: Report[] = [
   }
 ];
 
-// Invoices Mock Data
 export const sampleInvoices: Invoice[] = [
   {
     id: 'INV-2024-001',
@@ -192,7 +190,6 @@ export const sampleInvoices: Invoice[] = [
   }
 ];
 
-// Users Mock Data
 export const sampleUsers: User[] = [
   {
     id: '1',
@@ -290,7 +287,6 @@ export const sampleRoles: UserRole[] = [
   }
 ];
 
-// Offices Mock Data
 export const sampleOffices: Office[] = [
   {
     id: '1',
@@ -342,7 +338,6 @@ export const sampleOffices: Office[] = [
   }
 ];
 
-// Settings Mock Data
 export const sampleSettings: SystemSettings = {
   general: {
     companyName: 'Empcare Enterprise',
@@ -390,3 +385,43 @@ export const sampleSettings: SystemSettings = {
     customWebhooks: ['https://webhook.example.com/empcare']
   }
 };
+
+export const sampleCompanies: Company[] = [
+  {
+    id: 'comp-001',
+    name: 'Tech Solutions Inc',
+    adminEmail: 'admin@techsolutions.com',
+    adminPassword: 'Admin123!',
+    generalPassword: 'User123',
+    createdAt: '2024-01-15',
+    isActive: true
+  },
+  {
+    id: 'comp-002',
+    name: 'Digital Innovations Ltd',
+    adminEmail: 'admin@digitalinnovations.com',
+    adminPassword: 'Admin456!',
+    generalPassword: 'User456',
+    createdAt: '2024-02-01',
+    isActive: true
+  }
+];
+
+export const sampleAuthUsers: UserAuth[] = [
+  {
+    id: 'user-001',
+    email: 'admin@techsolutions.com',
+    companyId: 'comp-001',
+    companyName: 'Tech Solutions Inc',
+    role: 'admin',
+    createdAt: '2024-01-15'
+  },
+  {
+    id: 'user-002',
+    email: 'user@techsolutions.com',
+    companyId: 'comp-001',
+    companyName: 'Tech Solutions Inc',
+    role: 'user',
+    createdAt: '2024-01-16'
+  }
+];

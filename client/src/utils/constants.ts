@@ -53,3 +53,19 @@ export const ROUTES = {
   OFFICES: 'offices',
   SETTINGS: 'settings'
 } as const;
+
+export const USER_ROLES = [
+  'admin',
+  'user'
+] as const;
+
+export const PERMISSIONS = [
+  'assets',
+  'assignments',
+  'repairs',
+  'vendors',
+  'users',
+  'reports',
+  'settings',
+  'invoices'
+];

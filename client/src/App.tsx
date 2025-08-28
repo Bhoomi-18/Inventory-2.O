@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { AuthProvider } from './hooks/useAuth';
+import { AuthGuard, AuthContainer } from './components/auth';
 import { Layout } from './components/layout';
 import { Dashboard } from './components/dashboard';
 import { Inventory } from './components/inventory';
@@ -11,7 +13,7 @@ import { Users } from './components/users';
 import { Offices } from './components/offices';
 import { Settings } from './components/settings';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   const renderContent = () => {
@@ -51,9 +53,19 @@ const App: React.FC = () => {
   };
 
   return (
-    <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
-      {renderContent()}
-    </Layout>
+    <AuthGuard fallback={<AuthContainer />}>
+      <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
+        {renderContent()}
+      </Layout>
+    </AuthGuard>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 

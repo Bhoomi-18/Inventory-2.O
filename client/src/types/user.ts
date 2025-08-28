@@ -1,30 +1,27 @@
 export interface User {
-  id: string;
+  _id: string;
   name: string;
   email: string;
-  phone?: string;
-  department: string;
-  position: string;
-  role: UserRole;
-  status: 'Active' | 'Inactive' | 'Pending';
+  password?: string;
+  office?: string;
+  assignedAssets?: number;
+  role: string | UserRole;
+  status?: string;
   lastLogin?: string;
-  createdAt: string;
-  assignedAssets: number;
-  office: string;
-  avatar?: string;
+  createdAt?: string;
 }
 
 export interface UserRole {
-  id: string;
+  _id: string;
   name: string;
   permissions: Permission[];
   description: string;
-  isSystem: boolean;
+  isSystem?: boolean;
 }
 
 export interface Permission {
   id: string;
   name: string;
   module: string;
-  actions: string[]; // ['read', 'write', 'delete', 'admin']
+  actions: string[];
 }

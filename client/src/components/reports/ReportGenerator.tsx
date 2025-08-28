@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { FileText, Download } from 'lucide-react';
+import { FileText, Download, X } from 'lucide-react';
 
 interface ReportGeneratorProps {
-  onGenerate: (reportConfig: ReportConfig) => void;
+  onGenerate: (reportConfig: ReportConfig) => Promise<void>;
+  onCancel: () => void;
+  loading: boolean;
 }
 
 interface ReportConfig {
@@ -21,7 +23,7 @@ interface ReportConfig {
   };
 }
 
-const ReportGenerator: React.FC<ReportGeneratorProps> = ({ onGenerate }) => {
+const ReportGenerator: React.FC<ReportGeneratorProps> = ({ onGenerate, onCancel, loading }) => {
   const [config, setConfig] = useState<ReportConfig>({
     type: '',
     name: '',
@@ -34,9 +36,48 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ onGenerate }) => {
     filters: {}
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!config.type) {
+      newErrors.type = 'Report type is required';
+    }
+
+    if (!config.name.trim()) {
+      newErrors.name = 'Report name is required';
+    }
+
+    if (!config.dateRange.start) {
+      newErrors.startDate = 'Start date is required';
+    }
+
+    if (!config.dateRange.end) {
+      newErrors.endDate = 'End date is required';
+    }
+
+    if (config.dateRange.start && config.dateRange.end) {
+      if (new Date(config.dateRange.end) <= new Date(config.dateRange.start)) {
+        newErrors.endDate = 'End date must be after start date';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onGenerate(config);
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      await onGenerate(config);
+    } catch (error) {
+    }
   };
 
   const reportTypes = [
@@ -48,21 +89,42 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ onGenerate }) => {
     'Custom'
   ];
 
+  const categories = [
+    'Computers & Laptops',
+    'Monitors & Displays',
+    'Mobile Devices',
+    'Network Equipment',
+    'Office Equipment',
+    'Other'
+  ];
+
   return (
     <div className="bg-white p-6 rounded-lg border border-gray-200">
-      <div className="flex items-center gap-3 mb-6">
-        <FileText className="w-6 h-6 text-blue-600" />
-        <h3 className="text-lg font-semibold text-gray-900">Generate New Report</h3>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <FileText className="w-6 h-6 text-blue-600" />
+          <h3 className="text-lg font-semibold text-gray-900">Generate New Report</h3>
+        </div>
+        <button
+          onClick={onCancel}
+          className="text-gray-400 hover:text-gray-600"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Report Type</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Report Type *
+            </label>
             <select
               value={config.type}
               onChange={(e) => setConfig(prev => ({ ...prev, type: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.type ? 'border-red-300' : 'border-gray-300'
+              }`}
               required
             >
               <option value="">Select Report Type</option>
@@ -70,6 +132,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ onGenerate }) => {
                 <option key={type} value={type}>{type}</option>
               ))}
             </select>
+            {errors.type && <p className="text-red-500 text-xs mt-1">{errors.type}</p>}
           </div>
 
           <div>
@@ -87,15 +150,20 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ onGenerate }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Report Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Report Name *
+          </label>
           <input
             type="text"
             value={config.name}
             onChange={(e) => setConfig(prev => ({ ...prev, name: e.target.value }))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.name ? 'border-red-300' : 'border-gray-300'
+            }`}
             placeholder="Enter report name"
             required
           />
+          {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
         </div>
 
         <div>
@@ -105,13 +173,16 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ onGenerate }) => {
             onChange={(e) => setConfig(prev => ({ ...prev, description: e.target.value }))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows={3}
-            placeholder="Enter report description"
+            placeholder="Enter report description (optional)"
+            maxLength={500}
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Start Date *
+            </label>
             <input
               type="date"
               value={config.dateRange.start}
@@ -119,12 +190,18 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ onGenerate }) => {
                 ...prev, 
                 dateRange: { ...prev.dateRange, start: e.target.value }
               }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.startDate ? 'border-red-300' : 'border-gray-300'
+              }`}
+              max={new Date().toISOString().split('T')[0]}
             />
+            {errors.startDate && <p className="text-red-500 text-xs mt-1">{errors.startDate}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              End Date *
+            </label>
             <input
               type="date"
               value={config.dateRange.end}
@@ -132,22 +209,80 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ onGenerate }) => {
                 ...prev, 
                 dateRange: { ...prev.dateRange, end: e.target.value }
               }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.endDate ? 'border-red-300' : 'border-gray-300'
+              }`}
+              max={new Date().toISOString().split('T')[0]}
             />
+            {errors.endDate && <p className="text-red-500 text-xs mt-1">{errors.endDate}</p>}
+          </div>
+        </div>
+
+        {/* Filters Section */}
+        <div className="border-t pt-4">
+          <h4 className="text-sm font-medium text-gray-700 mb-3">Filters (Optional)</h4>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Category</label>
+              <select
+                value={config.filters.category || ''}
+                onChange={(e) => setConfig(prev => ({ 
+                  ...prev, 
+                  filters: { ...prev.filters, category: e.target.value || undefined }
+                }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Categories</option>
+                {categories.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Office</label>
+              <input
+                type="text"
+                value={config.filters.office || ''}
+                onChange={(e) => setConfig(prev => ({ 
+                  ...prev, 
+                  filters: { ...prev.filters, office: e.target.value || undefined }
+                }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Filter by office"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Department</label>
+              <input
+                type="text"
+                value={config.filters.department || ''}
+                onChange={(e) => setConfig(prev => ({ 
+                  ...prev, 
+                  filters: { ...prev.filters, department: e.target.value || undefined }
+                }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Filter by department"
+              />
+            </div>
           </div>
         </div>
 
         <div className="flex gap-3 pt-4">
           <button
             type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            disabled={loading}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Download className="w-4 h-4" />
-            Generate Report
+            {loading ? 'Generating...' : 'Generate Report'}
           </button>
           <button
             type="button"
-            className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50"
+            onClick={onCancel}
+            disabled={loading}
+            className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50"
           >
             Cancel
           </button>
